@@ -1,0 +1,28 @@
+#!/usr/bin/env ksh
+
+# run clade_to_clade_dist.py on each tree computed for the avebrlen computations
+
+cat <<! > _a
+BEGIN{
+  printf("ID\tLen\thpEuropeSahul-hpSahul\thpEuropeSahul-hpEurope\tPhi\n")
+}
+{
+  ID=\$1
+  print ID > "/dev/stderr"
+  cmd = sprintf("tail -1 AVEBRLEN/%s.avebrlen", ID)
+  cmd | getline medlen
+  split(medlen, a)
+  medlen = a[3]
+  close(cmd)
+  cmd = sprintf("clade_to_clade_dist.py hpEuropeSahul hpSahul AVEBRLEN/%s_aln.tree", ID)
+  cmd | getline X
+  close(cmd)
+  cmd = sprintf("clade_to_clade_dist.py hpEuropeSahul hpEurope_ AVEBRLEN/%s_aln.tree", ID)
+  cmd | getline Y
+  close(cmd)
+  printf("%s\t%d\t%s\t%s\t%s\t%0.3f\n", ID, medlen, X, Y, \$NF, Y-X)
+}
+!
+
+awk -f _a all_phi_quintessents.txt
+# awk -f _a sample
